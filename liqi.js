@@ -1,10 +1,21 @@
 // load file
 const fs = require('fs');
-const data = fs.readFileSync('corpus.txt', { encoding: 'utf8'}).trim().split("\n");
-const len = data.length - 1;
+const load_every = 10000;
+
+var data = fs.readFileSync('corpus.txt', { encoding: 'utf8'}).trim().split("\n");
+var names = fs.readFileSync('names.txt', { encoding: 'utf8'}).trim().split("\n");
+
+function load_from_file() {
+	data = fs.readFileSync('corpus.txt', { encoding: 'utf8'}).trim().split("\n");
+	names = fs.readFileSync('names.txt', { encoding: 'utf8'}).trim().split("\n");
+	console.log('reload file done');
+	setTimeout(load_from_file, load_every);
+}
+
+setTimeout(load_from_file, load_every);
 
 // parameters
-const reply_prob = 0.5;
+const reply_prob = 1;
 const wait_expectation = 500;
 const wait_stddev = 100;
 
@@ -52,14 +63,14 @@ const {
 function reply(message) {
 	const contact = message.from();
 	const name = contact.name();
-	if (name == "胡晓" && Math.random() < reply_prob) {
-		var selected_index = Math.round(Math.random() * len);
+	if (names.indexOf(name) >= 0 && Math.random() < reply_prob) {
+		var selected_index = Math.round(Math.random() * (data.length - 1));
 		var selected_text = data[selected_index];
 		var wait_time = liqi_distribution() * selected_text.length;
-		console.log(wait_time, selected_text);
+		console.log(name, wait_time, selected_text);
 		setTimeout(function(){ message.say(selected_text); }, wait_time);
 	} else {
-		console.log("no reply");
+		console.log("recieve msg from: " + name + ", does not reply");
 	}
 }
 
